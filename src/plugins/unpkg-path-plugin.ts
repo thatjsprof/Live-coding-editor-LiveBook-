@@ -6,26 +6,26 @@ const fileCache = localForage.createInstance({
   name: "livebookCache",
 });
 
-export const unpkgPathPlugin = () => {
+export const unpkgPathPlugin = (input: string) => {
   return {
     name: "unpkg-path-plugin",
     setup(build: esbuild.PluginBuild) {
+      // Handle root index.js file
+      build.onResolve({ filter: /(^index\.js$)/ }, async (args: any) => {
+        return { path: "index.js", namespace: "a" };
+      });
+
+      //   Handle relative file imports
+      build.onResolve({ filter: /^\.+\// }, async (args: any) => {
+        return {
+          namespace: "a",
+          path: new URL(`${args.path}`, `https://unpkg.com/${args.resolveDir}/`)
+            .href,
+        };
+      });
+
+      //   Handle main file of a module
       build.onResolve({ filter: /.*/ }, async (args: any) => {
-        console.log("onResolve", args);
-        if (args.path === "index.js") {
-          return { path: args.path, namespace: "a" };
-        }
-
-        if (args.path.includes("./") || args.path.includes("../")) {
-          return {
-            namespace: "a",
-            path: new URL(
-              `${args.path}`,
-              `https://unpkg.com/${args.resolveDir}/`
-            ).href,
-          };
-        }
-
         return {
           namespace: "a",
           path: `https://unpkg.com/${args.path}`,
@@ -39,14 +39,15 @@ export const unpkgPathPlugin = () => {
           return {
             loader: "jsx",
             contents: `
-              import message from 'react';
-              console.log(message);
+              ${input}
             `,
           };
         } else {
           // Check if we have already cached the package
 
-          const npmPackage = await fileCache.getItem<esbuild.OnLoadResult>(args.path);
+          const npmPackage = await fileCache.getItem<esbuild.OnLoadResult>(
+            args.path
+          );
 
           if (npmPackage) return npmPackage;
 
