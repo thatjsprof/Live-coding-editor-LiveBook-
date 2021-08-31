@@ -1,5 +1,10 @@
 import * as esbuild from "esbuild-wasm";
 import axios from "axios";
+import localForage from "localforage";
+
+const fileCache = localForage.createInstance({
+  name: "livebookCache",
+});
 
 export const unpkgPathPlugin = () => {
   return {
@@ -14,7 +19,10 @@ export const unpkgPathPlugin = () => {
         if (args.path.includes("./") || args.path.includes("../")) {
           return {
             namespace: "a",
-            path: new URL(`${args.path}`, `https://unpkg.com/${args.resolveDir}/`).href,
+            path: new URL(
+              `${args.path}`,
+              `https://unpkg.com/${args.resolveDir}/`
+            ).href,
           };
         }
 
@@ -36,12 +44,23 @@ export const unpkgPathPlugin = () => {
             `,
           };
         } else {
+          // Check if we have already cached the package
+
+          const npmPackage = await fileCache.getItem<esbuild.OnLoadResult>(args.path);
+
+          if (npmPackage) return npmPackage;
+
           const { data, request } = await axios.get(args.path);
-          return {
+
+          const returnedPackage: esbuild.OnLoadResult = {
             loader: "jsx",
             contents: data,
             resolveDir: new URL("./", request.responseURL).pathname,
           };
+
+          await fileCache.setItem(args.path, returnedPackage);
+
+          return returnedPackage;
         }
       });
     },
