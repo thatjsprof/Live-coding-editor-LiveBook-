@@ -6,8 +6,8 @@ import { fetchPlugin } from "./plugins/fetchPlugin";
 
 const App = () => {
   const Ref = useRef<any>();
+  const IframeRef = useRef<any>("");
   const [input, setInput] = useState("");
-  const [code, setCode] = useState("");
 
   const onClick = async () => {
     if (!Ref.current) return;
@@ -22,14 +22,32 @@ const App = () => {
       },
     });
 
-    setCode(result.outputFiles[0].text);
+    IframeRef.current.srcdoc = html
 
-    try {
-      eval(result.outputFiles[0].text);
-    } catch (err) {
-      alert(err);
-    }
+    IframeRef.current.contentWindow.postMessage(
+      result.outputFiles[0].text,
+      "*"
+    );
   };
+
+  const html = `
+  <html>
+    <head></head>
+    <body>
+      <div id="root"></div>
+      <script>
+        window.addEventListener('message', (event) => {
+          try {
+            eval(event.data)
+          } catch (err) {
+            document.querySelector('#root').innerHTML = '<div style="color: red;"><h4>Runtime Error:</h4>' + err + '</div>';
+            console.err(err);
+          }
+        }, false)
+       </script>
+    </body>
+  </html>
+  `;
 
   const startService = async () => {
     Ref.current = await esBuild.startService({
@@ -51,7 +69,7 @@ const App = () => {
       <div>
         <button onClick={onClick}>Submit</button>
       </div>
-      <pre>{code}</pre>
+      <iframe title="preview" ref={IframeRef} srcDoc={html} sandbox="allow-scripts"></iframe>
     </div>
   );
 };
