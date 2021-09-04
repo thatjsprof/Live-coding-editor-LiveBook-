@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@monaco-editor/react": "^4.2.2",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
@@ -11,6 +12,7 @@
     "axios": "^0.21.1",
     "esbuild-wasm": "^0.8.27",
     "localforage": "^1.10.0",
+    "monaco-editor": "^0.27.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
@@ -44,5 +46,8 @@
   "devDependencies": {
     "@types/react": "^17.0.19",
     "@types/react-dom": "^17.0.9"
+  },
+  "resolutions": {
+    "@monaco-editor/react/state-local": "1.0.1"
   }
 }

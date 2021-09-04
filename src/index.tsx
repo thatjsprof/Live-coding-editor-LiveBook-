@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import { unpkgPathPlugin } from "./plugins/unpkg-path-plugin";
 import { fetchPlugin } from "./plugins/fetchPlugin";
+import CodeEditor from "./components/code-editor/code-editor.component";
 
 const App = () => {
   const Ref = useRef<any>();
@@ -22,7 +23,7 @@ const App = () => {
       },
     });
 
-    IframeRef.current.srcdoc = html
+    IframeRef.current.srcdoc = html;
 
     IframeRef.current.contentWindow.postMessage(
       result.outputFiles[0].text,
@@ -41,7 +42,7 @@ const App = () => {
             eval(event.data)
           } catch (err) {
             document.querySelector('#root').innerHTML = '<div style="color: red;"><h4>Runtime Error:</h4>' + err + '</div>';
-            console.err(err);
+            console.error(err);
           }
         }, false)
        </script>
@@ -62,14 +63,22 @@ const App = () => {
 
   return (
     <div>
+      <CodeEditor initialValue="const a = 1;" onChange={(value) => setInput(value)} />
       <textarea
         value={input}
-        onChange={(e) => setInput(e.target.value)}
+        onChange={(e) => {
+          setInput(e.target.value);
+        }}
       ></textarea>
       <div>
         <button onClick={onClick}>Submit</button>
       </div>
-      <iframe title="preview" ref={IframeRef} srcDoc={html} sandbox="allow-scripts"></iframe>
+      <iframe
+        title="preview"
+        ref={IframeRef}
+        srcDoc={html}
+        sandbox="allow-scripts"
+      ></iframe>
     </div>
   );
 };
