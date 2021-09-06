@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import prettier from "prettier";
 import parser from "prettier/parser-babel";
+import "./code-editor.styles.css";
 
 type WithChildren<T = {}> = T & { children?: React.ReactNode };
 
@@ -23,19 +24,26 @@ const CodeEditor = ({ initialValue, onChange }: CodeEditorProps) => {
 
   const formatCode = () => {
     const unformatted = EditorRef.current.getModel().getValue();
-    const formatted = prettier.format(unformatted, {
-      parser: "babel",
-      plugins: [parser],
-      useTabs: false,
-      semi: true,
-      singleQuote: true,
-    });
+    const formatted = prettier
+      .format(unformatted, {
+        parser: "babel",
+        plugins: [parser],
+        useTabs: false,
+        semi: true,
+        singleQuote: true,
+      })
+      .replace(/\n$/, "");
     EditorRef.current.setValue(formatted);
   };
 
   return (
-    <React.Fragment>
-      <button onClick={formatCode}>Format Code</button>
+    <div className="editor-wrapper">
+      <button
+        className="button button-format is-primary is-small"
+        onClick={formatCode}
+      >
+        Format Code
+      </button>
       <MonacoEditor
         onMount={onEditorDidMount}
         value={initialValue}
@@ -53,7 +61,7 @@ const CodeEditor = ({ initialValue, onChange }: CodeEditorProps) => {
         height="500px"
         language="javascript"
       />
-    </React.Fragment>
+    </div>
   );
 };
 
